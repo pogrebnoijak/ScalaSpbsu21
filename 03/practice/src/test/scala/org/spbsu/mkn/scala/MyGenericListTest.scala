@@ -1,13 +1,9 @@
 package org.spbsu.mkn.scala
 
 import org.scalatest.funsuite.AnyFunSuite
-import org.spbsu.mkn.scala.MyGenericList.{fromSeq, size, sum}
+import org.spbsu.mkn.scala.MyGenericList.{MyNil, fromSeq, size, sum}
 
 class MyGenericListTest extends AnyFunSuite {
-
-  // remove after implementing actual MyNil
-  object MyNil
-
   test("head") {
     assert(fromSeq(Seq(1,2,3)).head == 1)
     assert(fromSeq(Seq(1)).head == 1)
@@ -34,9 +30,9 @@ class MyGenericListTest extends AnyFunSuite {
   }
 
   test("map") {
-    assert(MyNil.map(_ * 2) == MyNil)
+    assert(MyNil[Int].map(_ * 2) == MyNil)
     assert(fromSeq(Seq(1,2,3)).map(_ * 2) == fromSeq(Seq(2,4,6)))
-    assert(fromSeq(Seq(1,2,3)).map(identity) == fromSeq(Seq(1,2,3)))
+    assert(fromSeq(Seq(1,2,3)).map[Int](identity) == fromSeq(Seq(1,2,3)))
   }
 
   test("size") {
@@ -50,4 +46,18 @@ class MyGenericListTest extends AnyFunSuite {
     assert(sum(fromSeq(Seq(1))) == 1)
   }
 
+  test("covariance") {
+    abstract class Animal {
+      def name: String
+    }
+    case class Cat(name: String) extends Animal
+    case class Dog(name: String) extends Animal
+
+    def animalListSize(animal: MyGenericList[Animal]): Int = size(animal)
+
+    val cats: MyGenericList[Cat] = fromSeq(Seq(Cat("Cat1"), Cat("Cat2")))
+    val dogs: MyGenericList[Dog] = fromSeq(Seq(Dog("Dog1"), Dog("Dog2")))
+    assert (animalListSize(cats) == 2)
+    assert (animalListSize(dogs) == 2)
+  }
 }
