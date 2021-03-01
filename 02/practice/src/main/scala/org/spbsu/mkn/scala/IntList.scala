@@ -24,12 +24,10 @@ object IntList {
   def size(intList: IntList): Int     = intList.foldLeft(0){(a, _) => a + 1}
 }
 
-case class HList(x: Int, xs: IntList) extends IntList {
-  override def head: Int                    = x
-  override def tail: IntList                = xs
+case class HList(head: Int, tail: IntList) extends IntList {
   override def drop(n: Int): IntList        = if (n <= 0) this else tail.drop(n-1)
-  override def take(n: Int): IntList        = if (n <= 0) IntNil else HList(x, xs.take(n-1))
-  override def map(f: Int => Int): IntList  = HList(f(x), xs.map(f))
+  override def take(n: Int): IntList        = if (n <= 0) IntNil else HList(head, tail.take(n-1))
+  override def map(f: Int => Int): IntList  = HList(f(head), tail.map(f))
 }
 
 case object IntNil extends IntList {

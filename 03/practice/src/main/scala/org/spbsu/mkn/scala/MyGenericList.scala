@@ -7,7 +7,7 @@ sealed trait MyGenericList[+T] {
   def tail: MyGenericList[T]
   def drop(n: Int): MyGenericList[T]
   def take(n: Int): MyGenericList[T]
-  def map[T2 >: T](f: T2 => T2): MyGenericList[T2]
+  def map[T2](f: T => T2): MyGenericList[T2]
   def ::[T2 >: T](elem: T2): MyGenericList[T2]  = HList[T2](elem, MyNil)
   def foldLeft[B](z: B)(op: (B, T) => B): B     = this match {
     case HList(x, xs) => xs.foldLeft(op(z, x))(op)
@@ -26,18 +26,16 @@ object MyGenericList {
   def MyNil[T]: MyGenericList[T]                    = MyNilList.asInstanceOf[MyGenericList[T]]
 }
 
-case class HList[T](x: T, xs: MyGenericList[T]) extends MyGenericList[T] {
-  override def head: T                                      = x
-  override def tail: MyGenericList[T]                       = xs
-  override def drop(n: Int): MyGenericList[T]               = if (n <= 0) this else tail.drop(n-1)
-  override def take(n: Int): MyGenericList[T]               = if (n <= 0) MyNil else HList[T](x, xs.take(n-1))
-  override def map[T2 >: T](f: T2 => T2): MyGenericList[T2] = HList[T2](f(x.asInstanceOf[T2]), xs.map(f))
+case class HList[T](head: T, tail: MyGenericList[T]) extends MyGenericList[T] {
+  override def drop(n: Int): MyGenericList[T]         = if (n <= 0) this else tail.drop(n-1)
+  override def take(n: Int): MyGenericList[T]         = if (n <= 0) MyNil else HList[T](head, tail.take(n-1))
+  override def map[T2](f: T => T2): MyGenericList[T2] = HList[T2](f(head), tail.map(f))
 }
 
 case object MyNilList extends MyGenericList[Any] {
-  override def head: Any                                  = undef
-  override def tail: MyGenericList[Any]                   = undef
-  override def drop(n: Int): MyGenericList[Any]           = if (n == 0) this else undef
-  override def take(n: Int): MyGenericList[Any]           = if (n == 0) this else undef
-  override def map[T >: Any](f: T => T): MyGenericList[T] = this
+  override def head: Any                              = undef
+  override def tail: MyGenericList[Any]               = undef
+  override def drop(n: Int): MyGenericList[Any]       = if (n == 0) this else undef
+  override def take(n: Int): MyGenericList[Any]       = if (n == 0) this else undef
+  override def map[T](f: Any => T): MyGenericList[T]  = MyNil
 }
