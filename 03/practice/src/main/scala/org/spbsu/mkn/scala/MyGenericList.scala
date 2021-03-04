@@ -32,10 +32,10 @@ case class HList[T](head: T, tail: MyGenericList[T]) extends MyGenericList[T] {
   override def map[T2](f: T => T2): MyGenericList[T2] = HList[T2](f(head), tail.map(f))
 }
 
-case object MyNilList extends MyGenericList[Any] {
-  override def head: Any                              = undef
-  override def tail: MyGenericList[Any]               = undef
-  override def drop(n: Int): MyGenericList[Any]       = if (n == 0) this else undef
-  override def take(n: Int): MyGenericList[Any]       = if (n == 0) this else undef
-  override def map[T](f: Any => T): MyGenericList[T]  = MyNil
+case object MyNilList extends MyGenericList[Nothing] {
+  override def head: Nothing                              = undef
+  override def tail: MyGenericList[Nothing]               = undef
+  override def drop(n: Int): MyGenericList[Nothing]       = if (n == 0) this else undef
+  override def take(n: Int): MyGenericList[Nothing]       = if (n == 0) this else undef
+  override def map[T](f: Nothing => T): MyGenericList[T]  = MyNil
 }
