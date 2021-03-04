@@ -1,7 +1,6 @@
 package org.spbsu.mkn.scala
 
 import org.spbsu.mkn.scala.MyGenericList.{MyNil, sum, turnerInt, undef}
-
 import java.util.Comparator
 
 sealed trait MyGenericList[+T] {
@@ -10,7 +9,7 @@ sealed trait MyGenericList[+T] {
   def drop(n: Int): MyGenericList[T]
   def take(n: Int): MyGenericList[T]
   def map[T2](f: T => T2): MyGenericList[T2]
-  def filter[T2](f: T => Boolean): MyGenericList[T2]
+  def filter(f: T => Boolean): MyGenericList[T]
   def ::[T2 >: T](elem: T2): MyGenericList[T2]  = HList[T2](elem, MyNil)
   def foldLeft[B](z: B)(op: (B, T) => B): B     = this match {
     case HList(x, xs) => xs.foldLeft(op(z, x))(op)
@@ -22,7 +21,7 @@ object MyGenericList {
   def undef: Nothing                                = throw new UnsupportedOperationException("operation is undefined")
   def fromSeq[T](seq: Seq[T]): MyGenericList[T]     = seq.foldRight(MyNil[T])(HList[T])
   def size[T](genList: MyGenericList[T]): Int       = genList.foldLeft(0){(a, _) => a + 1}
-  def sum[T, B](genList: MyGenericList[T])(b: B = 0)(implicit turn: (B,T) => B): B = genList match {
+  def sum[T, B](genList: MyGenericList[T])(b: B)(implicit turn: (B,T) => B): B = genList match {
     case HList(_, _)  => genList.foldLeft(b)((bb, t) => turn(bb, t))
     case MyNilList    => undef
   }
@@ -44,20 +43,19 @@ object MyGenericList {
 }
 
 case class HList[T](head: T, tail: MyGenericList[T]) extends MyGenericList[T] {
-  override def drop(n: Int): MyGenericList[T]                 = if (n <= 0) this else tail.drop(n-1)
-  override def take(n: Int): MyGenericList[T]                 = if (n <= 0) MyNil else HList(head, tail.take(n-1))
-  override def map[T2](f: T => T2): MyGenericList[T2]         = HList(f(head), tail.map(f))
-  override def filter[T2](f: T => Boolean): MyGenericList[T2] = if (f(head)) HList(head.asInstanceOf[T2], tail.filter(f))
-                                                                else tail.filter(f)
+  override def drop(n: Int): MyGenericList[T]             = if (n <= 0) this else tail.drop(n-1)
+  override def take(n: Int): MyGenericList[T]             = if (n <= 0) MyNil else HList(head, tail.take(n-1))
+  override def map[T2](f: T => T2): MyGenericList[T2]     = HList(f(head), tail.map(f))
+  override def filter(f: T => Boolean): MyGenericList[T]  = if (f(head)) HList(head, tail.filter(f)) else tail.filter(f)
 }
 
 case object MyNilList extends MyGenericList[Nothing] {
-  override def head: Nothing                                      = undef
-  override def tail: MyGenericList[Nothing]                       = undef
-  override def drop(n: Int): MyGenericList[Nothing]               = if (n == 0) this else undef
-  override def take(n: Int): MyGenericList[Nothing]               = if (n == 0) this else undef
-  override def map[T](f: Nothing => T): MyGenericList[T]          = MyNil
-  override def filter[T](f: Nothing => Boolean): MyGenericList[T] = MyNil
+  override def head: Nothing                                          = undef
+  override def tail: MyGenericList[Nothing]                           = undef
+  override def drop(n: Int): MyGenericList[Nothing]                   = if (n == 0) this else undef
+  override def take(n: Int): MyGenericList[Nothing]                   = if (n == 0) this else undef
+  override def map[T](f: Nothing => T): MyGenericList[T]              = MyNil
+  override def filter(f: Nothing => Boolean): MyGenericList[Nothing]  = MyNil
 }
 
 object Comparator {
