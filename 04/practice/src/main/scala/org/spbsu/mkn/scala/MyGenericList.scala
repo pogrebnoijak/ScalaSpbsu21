@@ -1,7 +1,9 @@
 package org.spbsu.mkn.scala
 
-import org.spbsu.mkn.scala.MyGenericList.{MyNil, sum, turnerInt, undef}
+import org.spbsu.mkn.scala.MyGenericList.{MyNil, size, sum, turnerInt, undef}
+
 import java.util.Comparator
+import scala.annotation.tailrec
 
 sealed trait MyGenericList[+T] {
   def head: T
@@ -17,6 +19,7 @@ sealed trait MyGenericList[+T] {
   }
 }
 
+//noinspection TypeAnnotation
 object MyGenericList {
   def undef: Nothing                                = throw new UnsupportedOperationException("operation is undefined")
   def fromSeq[T](seq: Seq[T]): MyGenericList[T]     = seq.foldRight(MyNil[T])(HList[T])
@@ -25,7 +28,7 @@ object MyGenericList {
     case HList(_, _)  => genList.foldLeft(b)((bb, t) => turn(bb, t))
     case MyNilList    => undef
   }
-  def MyNil[T]: MyGenericList[T]                    = MyNilList.asInstanceOf[MyGenericList[T]]
+  def MyNil[T]: MyGenericList[T]                    = MyNilList
   def sort[T](list: MyGenericList[T])(implicit comparator: Comparator[T]): MyGenericList[T] = list match {
     case HList(head, tail) => plus(sort(tail.filter(comparator.compare(head, _) <= 0))(comparator),
       HList(head, sort(tail.filter(comparator.compare(head, _) > 0))(comparator)))
@@ -36,8 +39,16 @@ object MyGenericList {
     case MyNilList          => list2
   }
 
-  implicit def ComparatorGList[T]: Comparator[MyGenericList[T]] =
-    (a: MyGenericList[T], b: MyGenericList[T])  => size(a) compare size(b)
+  implicit def ComparatorInt[T]: Comparator[Int] = Ordering[Int].reverse
+  implicit def ComparatorGList[T <: Int]: Comparator[MyGenericList[T]] = new Comparator[MyGenericList[T]] {
+    @tailrec
+    def compare(a: MyGenericList[T], b: MyGenericList[T]) = (a,b) match {
+      case (HList(h1, t1), HList(h2, t2)) => if ((h1 compare h2) == 0) compare(t1, t2) else -(h1 compare h2) // - to: min .. max
+      case (HList(_,_), MyNilList)        => -1
+      case (MyNilList, HList(_,_))        => 1
+      case (MyNilList, MyNilList)         => 0
+    }
+  }
   implicit def turnerInt: (Int, Int)            => Int = {_ + _}
   implicit def turnerStr: (Int, String)         => Int = {_ + _.length}
 }
@@ -61,5 +72,7 @@ case object MyNilList extends MyGenericList[Nothing] {
 object Comparator {
   def ComparatorGList2[T <: Int]: Comparator[MyGenericList[T]]  =
     (a: MyGenericList[T], b: MyGenericList[T]) => sum(a)(0) compare sum(b)(0)
+  implicit def ComparatorGList3[T]: Comparator[MyGenericList[T]] =
+    (a: MyGenericList[T], b: MyGenericList[T])  => size(a) compare size(b)
   def turnerStr2: (String, String) => String                    = {_ + _}
 }
