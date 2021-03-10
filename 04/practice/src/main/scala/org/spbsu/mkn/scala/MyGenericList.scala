@@ -38,11 +38,12 @@ object MyGenericList {
     case MyNilList          => list2
   }
 
-  implicit def ComparatorInt[T]: Comparator[Int]                        = Ordering[Int].reverse
-  implicit def ComparatorGList[T <: Int]: Comparator[MyGenericList[T]]  = new Comparator[MyGenericList[T]] {
+  implicit def ComparatorStr: Comparator[String]                                              = Ordering[String].reverse
+  implicit def ComparatorInt: Comparator[Int]                                                 = Ordering[Int].reverse
+  implicit def ComparatorGList[T](implicit comp: Comparator[T]): Comparator[MyGenericList[T]] = new Comparator[MyGenericList[T]] {
     @tailrec
     def compare(a: MyGenericList[T], b: MyGenericList[T]): Int = (a,b) match {
-      case (HList(h1, t1), HList(h2, t2)) => if ((h1 compare h2) == 0) compare(t1, t2) else -(h1 compare h2) // - to: min .. max
+      case (HList(h1, t1), HList(h2, t2)) => if (comp.compare(h1,h2) == 0) compare(t1,t2) else comp.compare(h1,h2)
       case (HList(_,_), MyNilList)        => -1
       case (MyNilList, HList(_,_))        => 1
       case (MyNilList, MyNilList)         => 0

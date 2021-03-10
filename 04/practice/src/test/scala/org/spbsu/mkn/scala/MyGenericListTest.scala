@@ -1,7 +1,7 @@
 package org.spbsu.mkn.scala
 
 import org.scalatest.funsuite.AnyFunSuite
-import org.spbsu.mkn.scala.MyGenericList.{ComparatorGList, ComparatorInt, MyNil, fromSeq, plus, size, sort, sum, turnerInt, turnerStr}
+import org.spbsu.mkn.scala.MyGenericList._
 
 class MyGenericListTest extends AnyFunSuite {
   test("head") {
